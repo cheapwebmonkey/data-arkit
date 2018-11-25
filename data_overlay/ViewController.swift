@@ -4,7 +4,10 @@
 //
 //  Created by Margeaux Spring on 11/25/18.
 //  Copyright © 2018 Margeaux Spring. All rights reserved.
-//
+
+//  NOTE not all iOS devices support ARkit- the XR in the emulator,
+//  for example does not, so you'll need to include 'arkit' for the
+//  UIRequiredDeviceCapabilities key in the Info.plist
 
 import UIKit
 import SceneKit
@@ -30,11 +33,15 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.scene = scene
     }
     
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         // Create a session configuration
         let configuration = ARWorldTrackingConfiguration()
+        
+        //adds plane detection configuration to horizontal
+        configuration.planeDetection = .horizontal
 
         // Run the view's session
         sceneView.session.run(configuration)
