@@ -12,6 +12,15 @@
 import UIKit
 import SceneKit
 import ARKit
+import Vision
+import RxSwift
+import RxCocoa
+import SwiftyJSON
+import VisualRecognitionV3
+import PKHUD
+
+
+
 
 class ViewController: UIViewController, ARSCNViewDelegate {
 
@@ -78,5 +87,44 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     func sessionInterruptionEnded(_ session: ARSession) {
         // Reset tracking and/or remove existing anchors if consistent tracking is required
         
+    }
+    
+}
+
+
+// MARK: — Face detections
+private func faceObservation() -> Observable<[(observation: VNFaceObservation, image: CIImage, frame: ARFrame)]> {
+    return Observable<[(observation: VNFaceObservation, image: CIImage, frame: ARFrame)]>.create{ observer in
+        guard let frame = self.sceneView.session.currentFrame else {
+            print("No frame available")
+            observer.onCompleted()
+            return Disposables.create()
+        }
+        
+        // Create and rotate image
+        let image = CIImage.init(cvPixelBuffer: frame.capturedImage).rotate
+        let facesRequest = VNDetectFaceRectanglesRequest { request, error in
+            guard error == nil else {
+                print("Face request error: \(error!.localizedDescription)")
+                observer.onCompleted()
+                return
+}
+
+            guard let observations = request.results as? [VNFaceObservation] else {
+                print("No face observations")
+                observer.onCompleted()
+                return
+}
+
+
+            // Map response
+            let response = observations.map({ (face) -> (observation: VNFaceObservation, image: CIImage, frame: ARFrame) in
+                return (observation: face, image: image, frame: frame)
+            })
+            observer.onNext(response)
+            observer.onCompleted()
+        }
+        try? VNImageRequestHandler(ciImage: image).perform([facesRequest])
+        return Disposables.create()
     }
 }
