@@ -1,0 +1,6 @@
+framework module Pods_data_overlay {
+  umbrella header "Pods-data_overlay-umbrella.h"
+
+  export *
+  module * { export * }
+}
